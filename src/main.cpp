@@ -26,6 +26,8 @@ void processInput(GLFWwindow *window);
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
 
+unsigned int loadCubemap(vector<std::string> &faces);
+
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -158,8 +160,6 @@ int main() {
     ImGuiIO &io = ImGui::GetIO();
     (void) io;
 
-
-
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330 core");
 
@@ -173,9 +173,65 @@ int main() {
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
+    float skyboxVertices[] = {
+            -1.0f,  1.0f, -1.0f,
+            -1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+
+            -1.0f, -1.0f,  1.0f,
+            -1.0f, -1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f,  1.0f,
+            -1.0f, -1.0f,  1.0f,
+
+            1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+
+            -1.0f, -1.0f,  1.0f,
+            -1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,
+            1.0f, -1.0f,  1.0f,
+            -1.0f, -1.0f,  1.0f,
+
+            -1.0f,  1.0f, -1.0f,
+            1.0f,  1.0f, -1.0f,
+            1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,
+            -1.0f,  1.0f,  1.0f,
+            -1.0f,  1.0f, -1.0f,
+
+            -1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f,  1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f,  1.0f,
+            1.0f, -1.0f,  1.0f
+    };
+
+    unsigned int skyboxVAO, skyboxVBO;
+    glGenVertexArrays(1, &skyboxVAO);
+    glGenBuffers(1, &skyboxVBO);
+    glBindVertexArray(skyboxVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+
     // build and compile shaders
     // -------------------------
-    Shader mushroomShader("resources/shaders/mushroom.vs", "resources/shaders/mushroom.fs");
+    Shader modelsShader("resources/shaders/models.vs", "resources/shaders/models.fs");
+    Shader skyboxShader("resources/shaders/skybox.vs", "resources/shaders/skybox.fs");
+
 
     // load models
     // -----------
@@ -188,6 +244,18 @@ int main() {
     directionalLight.diffuse = glm::vec3(0.6, 0.6, 0.6);
     directionalLight.specular = glm::vec3(1.0, 1.0, 1.0);
 
+    vector<std::string> faces {
+            FileSystem::getPath("resources/textures/skybox/right.png"),
+            FileSystem::getPath("resources/textures/skybox/left.png"),
+            FileSystem::getPath("resources/textures/skybox/top.png"),
+            FileSystem::getPath("resources/textures/skybox/bottom.png"),
+            FileSystem::getPath("resources/textures/skybox/front.png"),
+            FileSystem::getPath("resources/textures/skybox/back.png")
+    };
+    unsigned int cubemapTexture = loadCubemap(faces);
+
+    skyboxShader.use();
+    skyboxShader.setInt("skybox", 0);
 
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -212,29 +280,45 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // don't forget to enable shader before setting uniforms
-        mushroomShader.use();
-        mushroomShader.setVec3("directionalLight.direction", directionalLight.direction);
-        mushroomShader.setVec3("directionalLight.ambient", directionalLight.ambient);
-        mushroomShader.setVec3("directionalLight.diffuse", directionalLight.diffuse);
-        mushroomShader.setVec3("directionalLight.specular", directionalLight.specular);
-        mushroomShader.setVec3("viewPosition", programState->camera.Position);
-        mushroomShader.setFloat("material.shininess", 32.0f);
-        mushroomShader.setFloat("material.specular", 0.05f);
+        modelsShader.use();
+        modelsShader.setVec3("directionalLight.direction", directionalLight.direction);
+        modelsShader.setVec3("directionalLight.ambient", directionalLight.ambient);
+        modelsShader.setVec3("directionalLight.diffuse", directionalLight.diffuse);
+        modelsShader.setVec3("directionalLight.specular", directionalLight.specular);
+        modelsShader.setVec3("viewPosition", programState->camera.Position);
+        modelsShader.setFloat("material.shininess", 32.0f);
+        modelsShader.setFloat("material.specular", 0.05f);
 
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom),
                                                 (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = programState->camera.GetViewMatrix();
-        mushroomShader.setMat4("projection", projection);
-        mushroomShader.setMat4("view", view);
+        modelsShader.setMat4("projection", projection);
+        modelsShader.setMat4("view", view);
 
-        // render the loaded model
+        // render the mushroom model
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model,
                                programState->mushroomPosition); // translate it down so it's at the center of the scene
         model = glm::scale(model, glm::vec3(programState->mushroomScale));    // it's a bit too big for our scene, so scale it down
-        mushroomShader.setMat4("model", model);
-        mushroomModel.Draw(mushroomShader);
+        modelsShader.setMat4("model", model);
+        mushroomModel.Draw(modelsShader);
+
+        // draw skybox
+        glDepthMask(GL_FALSE);
+        glDepthFunc(GL_LEQUAL);
+        skyboxShader.use();
+        view = glm::mat4(glm::mat3(programState->camera.GetViewMatrix()));
+        skyboxShader.setMat4("view", view);
+        skyboxShader.setMat4("projection", projection);
+        // skybox cube
+        glBindVertexArray(skyboxVAO);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindVertexArray(0);
+        glDepthFunc(GL_LESS);
+        glDepthMask(GL_TRUE);
 
         if (programState->ImGuiEnabled)
             DrawImGui(programState);
@@ -353,4 +437,36 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         }
     }
+}
+
+unsigned int loadCubemap(vector<std::string> &faces)
+{
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+    int width, height, nrChannels;
+    for (unsigned int i = 0; i < faces.size(); i++)
+    {
+        unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
+        if (data)
+        {
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+                         0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data
+            );
+            stbi_image_free(data);
+        }
+        else
+        {
+            std::cout << "Cubemap tex failed to load at path: " << faces[i] << std::endl;
+            stbi_image_free(data);
+        }
+    }
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    return textureID;
 }
