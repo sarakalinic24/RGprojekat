@@ -66,8 +66,12 @@ struct ProgramState {
     bool ImGuiEnabled = false;
     Camera camera;
     bool CameraMouseMovementUpdateEnabled = true;
-    glm::vec3 mushroomPosition = glm::vec3(0.0f);
-    float mushroomScale = 0.3f;
+    glm::vec3 saturnPosition = glm::vec3(0.0f);
+    float saturnScale = 3.0f;
+    glm::vec3 ufoPosition = glm::vec3(-1.2f, 8.0f, -1.0f);
+    float ufoScale = 0.5f;
+    glm::vec3 housePosition = glm::vec3(0.8f, 4.1f, 0.0f);
+    float houseScale = 0.4f;
     DirectionalLight directionalLight;
     ProgramState()
             : camera(glm::vec3(0.0f, 0.0f, 3.0f)) {}
@@ -232,11 +236,16 @@ int main() {
     Shader modelsShader("resources/shaders/models.vs", "resources/shaders/models.fs");
     Shader skyboxShader("resources/shaders/skybox.vs", "resources/shaders/skybox.fs");
 
-
     // load models
     // -----------
-    Model mushroomModel("resources/objects/mushroom/Mushrooms1.obj");
-    mushroomModel.SetShaderTextureNamePrefix("material.");
+    Model saturnModel("resources/objects/saturn/Stylized_Planets.obj");
+    saturnModel.SetShaderTextureNamePrefix("material.");
+
+    Model ufoModel("resources/objects/ufo/UFO.obj");
+    ufoModel.SetShaderTextureNamePrefix("material.");
+
+    Model houseModel("resources/objects/house/uploads_files_4118883_Orange_Hause.obj");
+    ufoModel.SetShaderTextureNamePrefix("material.");
 
     DirectionalLight& directionalLight = programState->directionalLight;
     directionalLight.direction = glm::vec3(1.0f, -0.3, 0.2);
@@ -290,19 +299,34 @@ int main() {
         modelsShader.setFloat("material.specular", 0.05f);
 
         // view/projection transformations
-        glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom),
-                                                (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom),(float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = programState->camera.GetViewMatrix();
         modelsShader.setMat4("projection", projection);
         modelsShader.setMat4("view", view);
 
-        // render the mushroom model
+        // render the saturn model
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model,
-                               programState->mushroomPosition); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(programState->mushroomScale));    // it's a bit too big for our scene, so scale it down
+        model = glm::translate(model,programState->saturnPosition); // translate it down so it's at the center of the scene
+        model = glm::scale(model, glm::vec3(programState->saturnScale));    // it's a bit too big for our scene, so scale it down
         modelsShader.setMat4("model", model);
-        mushroomModel.Draw(modelsShader);
+        saturnModel.Draw(modelsShader);
+
+        // render the ufo model
+        model = glm::mat4(1.0f);
+        model = glm::translate(model,programState->ufoPosition); // translate it down so it's at the center of the scene
+        model = glm::scale(model, glm::vec3(programState->ufoScale));    // it's a bit too big for our scene, so scale it down
+        model = glm::rotate(model, glm::radians(10.0f), glm::vec3(0.0, 0.0, 1.0));
+        modelsShader.setMat4("model", model);
+        ufoModel.Draw(modelsShader);
+
+        // render the house model
+        model = glm::mat4(1.0f);
+        model = glm::translate(model,programState->housePosition); // translate it down so it's at the center of the scene
+        model = glm::scale(model, glm::vec3(programState->houseScale));    // it's a bit too big for our scene, so scale it down
+        model = glm::rotate(model, glm::radians(-10.0f), glm::vec3(0.0, 0.0, 1.0));
+        modelsShader.setMat4("model", model);
+        houseModel.Draw(modelsShader);
+
 
         // draw skybox
         glDepthMask(GL_FALSE);
@@ -407,8 +431,8 @@ void DrawImGui(ProgramState *programState) {
         ImGui::Text("Hello text");
         ImGui::SliderFloat("Float slider", &f, 0.0, 1.0);
         ImGui::ColorEdit3("Background color", (float *) &programState->clearColor);
-        ImGui::DragFloat3("Mushroom position", (float*)&programState->mushroomPosition);
-        ImGui::DragFloat("Mushroom scale", &programState->mushroomScale, 0.05, 0.1, 4.0);
+        ImGui::DragFloat3("Mushroom position", (float*)&programState->saturnPosition);
+        ImGui::DragFloat("Mushroom scale", &programState->saturnScale, 0.05, 0.1, 4.0);
 
         ImGui::End();
     }
