@@ -70,8 +70,10 @@ struct ProgramState {
     float saturnScale = 3.0f;
     glm::vec3 ufoPosition = glm::vec3(-1.2f, 8.0f, -1.0f);
     float ufoScale = 0.5f;
-    glm::vec3 housePosition = glm::vec3(0.8f, 4.1f, 0.0f);
+    glm::vec3 housePosition = glm::vec3(0.8f, 4.0f, 0.0f);
     float houseScale = 0.4f;
+    glm::vec3 mushroomPosition = glm::vec3(-0.5f ,3.3f, -0.1f);
+    float mushroomScale = 0.008f;
     DirectionalLight directionalLight;
     ProgramState()
             : camera(glm::vec3(0.0f, 0.0f, 3.0f)) {}
@@ -247,6 +249,9 @@ int main() {
     Model houseModel("resources/objects/house/uploads_files_4118883_Orange_Hause.obj");
     ufoModel.SetShaderTextureNamePrefix("material.");
 
+    Model mushroomModel("resources/objects/mushroom/Mushrooms1.obj");
+    mushroomModel.SetShaderTextureNamePrefix("material.");
+
     DirectionalLight& directionalLight = programState->directionalLight;
     directionalLight.direction = glm::vec3(1.0f, -0.3, 0.2);
     directionalLight.ambient = glm::vec3(0.2, 0.2, 0.2);
@@ -316,6 +321,7 @@ int main() {
         model = glm::translate(model,programState->ufoPosition); // translate it down so it's at the center of the scene
         model = glm::scale(model, glm::vec3(programState->ufoScale));    // it's a bit too big for our scene, so scale it down
         model = glm::rotate(model, glm::radians(10.0f), glm::vec3(0.0, 0.0, 1.0));
+        model = glm::rotate(model, glm::radians(float(20 * (glfwGetTime()))), glm::vec3(0.0, 1.0, 0.0));
         modelsShader.setMat4("model", model);
         ufoModel.Draw(modelsShader);
 
@@ -323,12 +329,21 @@ int main() {
         model = glm::mat4(1.0f);
         model = glm::translate(model,programState->housePosition); // translate it down so it's at the center of the scene
         model = glm::scale(model, glm::vec3(programState->houseScale));    // it's a bit too big for our scene, so scale it down
-        model = glm::rotate(model, glm::radians(-10.0f), glm::vec3(0.0, 0.0, 1.0));
+        model = glm::rotate(model, glm::radians(-12.0f), glm::vec3(0.0, 0.0, 1.0));
+        model = glm::rotate(model, glm::radians(-45.0f), glm::vec3(0.0, 1.0, 0.0));
         modelsShader.setMat4("model", model);
         houseModel.Draw(modelsShader);
 
+        // render mushroom model
+        model = glm::mat4(1.0f);
+        model = glm::translate(model,programState->mushroomPosition); // translate it down so it's at the center of the scene
+        model = glm::scale(model, glm::vec3(programState->mushroomScale));    // it's a bit too big for our scene, so scale it down
+        model = glm::rotate(model, glm::radians(10.0f), glm::vec3(0.0, 0.0, 1.0));
+        modelsShader.setMat4("model", model);
+        mushroomModel.Draw(modelsShader);
 
-        // draw skybox
+
+        // draw skyboxa
         glDepthMask(GL_FALSE);
         glDepthFunc(GL_LEQUAL);
         skyboxShader.use();
