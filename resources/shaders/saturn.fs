@@ -72,7 +72,7 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
 
        return (ambient + diffuse + specular);
 }
-// calculates the color when using a point light.
+
 vec3 CalcDirectionalLight(DirectionalLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
 {
     vec3 lightDir = normalize(-light.direction);

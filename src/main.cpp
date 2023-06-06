@@ -235,8 +235,8 @@ int main() {
     directionalLight.specular = glm::vec3(1.0, 1.0, 1.0);
 
     SpotLight& ufoSpotLight = programState->ufoSpotLight;
-    ufoSpotLight.ambient = glm::vec3(0.1f);
-    ufoSpotLight.diffuse = glm::vec3(5.0f);
+    ufoSpotLight.ambient = glm::vec3(0.3f);
+    ufoSpotLight.diffuse = glm::vec3(1.0f, 7.0f, 1.0f);
     ufoSpotLight.specular = glm::vec3(1.0f);
     ufoSpotLight.position = programState->ufoPosition;
     ufoSpotLight.direction = programState->saturnPosition - programState->ufoPosition;
@@ -284,7 +284,7 @@ int main() {
         // don't forget to enable shader before setting uniforms
         ufoShader.use();
         ufoShader.setVec3("directionalLight.direction", directionalLight.direction);
-        ufoShader.setVec3("directionalLight.ambient", 1.0f, 1.0f, 1.0f);
+        ufoShader.setVec3("directionalLight.ambient", 1.5f, 1.5f, 1.7f);
         ufoShader.setVec3("directionalLight.diffuse", directionalLight.diffuse);
         ufoShader.setVec3("directionalLight.specular", directionalLight.specular);
         ufoShader.setVec3("viewPosition", programState->camera.Position);
