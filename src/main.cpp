@@ -170,7 +170,7 @@ int main() {
     programState = new ProgramState;
     programState->LoadFromFile("resources/program_state.txt");
     if (programState->ImGuiEnabled) {
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     }
     // Init Imgui
     IMGUI_CHECKVERSION();
@@ -184,13 +184,14 @@ int main() {
     // configure global opengl state
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
-
+    // blending
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+    // face cull
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
+    // skybox
     float skyboxVertices[] = {
             -1.0f,  1.0f, -1.0f,
             -1.0f, -1.0f, -1.0f,
@@ -247,7 +248,7 @@ int main() {
 
     // build and compile shaders
     // -------------------------
-    Shader modelsShader("resources/shaders/models.vs", "resources/shaders/models.fs");
+    Shader ufoShader("resources/shaders/ufo.vs", "resources/shaders/ufo.fs");
     Shader skyboxShader("resources/shaders/skybox.vs", "resources/shaders/skybox.fs");
     Shader saturnShader("resources/shaders/saturn.vs", "resources/shaders/saturn.fs");
 
@@ -319,20 +320,20 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // don't forget to enable shader before setting uniforms
-        modelsShader.use();
-        modelsShader.setVec3("directionalLight.direction", directionalLight.direction);
-        modelsShader.setVec3("directionalLight.ambient", 0.7f, 0.7f, 0.7f);
-        modelsShader.setVec3("directionalLight.diffuse", directionalLight.diffuse);
-        modelsShader.setVec3("directionalLight.specular", directionalLight.specular);
-        modelsShader.setVec3("viewPosition", programState->camera.Position);
-        modelsShader.setFloat("material.shininess", 32.0f);
-        modelsShader.setFloat("material.specular", 0.05f);
+        ufoShader.use();
+        ufoShader.setVec3("directionalLight.direction", directionalLight.direction);
+        ufoShader.setVec3("directionalLight.ambient", 1.0f, 1.0f, 1.0f);
+        ufoShader.setVec3("directionalLight.diffuse", directionalLight.diffuse);
+        ufoShader.setVec3("directionalLight.specular", directionalLight.specular);
+        ufoShader.setVec3("viewPosition", programState->camera.Position);
+        ufoShader.setFloat("material.shininess", 32.0f);
+        ufoShader.setFloat("material.specular", 0.05f);
 
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom),(float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = programState->camera.GetViewMatrix();
-        modelsShader.setMat4("projection", projection);
-        modelsShader.setMat4("view", view);
+        ufoShader.setMat4("projection", projection);
+        ufoShader.setMat4("view", view);
 
         // render the ufo model
         glm::mat4 model = glm::mat4(1.0f);
@@ -340,8 +341,8 @@ int main() {
         model = glm::scale(model, glm::vec3(programState->ufoScale));    // it's a bit too big for our scene, so scale it down
         model = glm::rotate(model, glm::radians(10.0f), glm::vec3(0.0, 0.0, 1.0));
         model = glm::rotate(model, glm::radians(float(20 * (glfwGetTime()))), glm::vec3(0.0, 1.0, 0.0));
-        modelsShader.setMat4("model", model);
-        ufoModel.Draw(modelsShader);
+        ufoShader.setMat4("model", model);
+        ufoModel.Draw(ufoShader);
 
         saturnShader.use();
         saturnShader.setVec3("directionalLight.direction", directionalLight.direction);
@@ -369,8 +370,8 @@ int main() {
         model = glm::mat4(1.0f);
         model = glm::translate(model,programState->saturnPosition); // translate it down so it's at the center of the scene
         model = glm::scale(model, glm::vec3(programState->saturnScale));    // it's a bit too big for our scene, so scale it down
-        modelsShader.setMat4("model", model);
-        saturnModel.Draw(modelsShader);
+        saturnShader.setMat4("model", model);
+        saturnModel.Draw(saturnShader);
 
         // render the house model
         model = glm::mat4(1.0f);
@@ -378,16 +379,16 @@ int main() {
         model = glm::scale(model, glm::vec3(programState->houseScale));    // it's a bit too big for our scene, so scale it down
         model = glm::rotate(model, glm::radians(-12.0f), glm::vec3(0.0, 0.0, 1.0));
         model = glm::rotate(model, glm::radians(-45.0f), glm::vec3(0.0, 1.0, 0.0));
-        modelsShader.setMat4("model", model);
-        houseModel.Draw(modelsShader);
+        saturnShader.setMat4("model", model);
+        houseModel.Draw(saturnShader);
 
         // render mushroom model
         model = glm::mat4(1.0f);
         model = glm::translate(model,programState->mushroomPosition); // translate it down so it's at the center of the scene
         model = glm::scale(model, glm::vec3(programState->mushroomScale));    // it's a bit too big for our scene, so scale it down
         model = glm::rotate(model, glm::radians(10.0f), glm::vec3(0.0, 0.0, 1.0));
-        modelsShader.setMat4("model", model);
-        mushroomModel.Draw(modelsShader);
+        saturnShader.setMat4("model", model);
+        mushroomModel.Draw(saturnShader);
 
 
         // draw skyboxa
@@ -407,7 +408,7 @@ int main() {
         glDepthMask(GL_TRUE);
 
         if (programState->ImGuiEnabled)
-            DrawImGui(programState);
+            //DrawImGui(programState);
 
 
 
@@ -520,6 +521,7 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
             programState->CameraMouseMovementUpdateEnabled = false;
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         } else {
+            programState->CameraMouseMovementUpdateEnabled = true;
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         }
     }
