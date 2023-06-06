@@ -7,22 +7,22 @@ Vanzemaljci su otkrili novu planetu sa jednim malim stanovnikom.
 
 ## Komande
 
-'W' - napred
+`W` - napred
 
-'S' - nazad
+`S` - nazad
 
-'A' - levo
+`A` - levo
 
-'D' - desno
+`D` - desno
 
-'Q' - dole
+`Q` - dole
 
-'E' - gore
+`E` - gore
 
-'SCROLL' - uvelicavanje
+`SCROLL` - uvelicavanje
 
 ---
 
 ## Implementirano
 
--[x] Cubemaps
+- [x] Cubemaps
