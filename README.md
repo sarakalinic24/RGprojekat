@@ -26,3 +26,4 @@ Vanzemaljci su otkrili novu planetu sa jednim malim stanovnikom.
 ## Implementirano
 
 - [x] Cubemaps
+- [x] Hdr & Bloom
