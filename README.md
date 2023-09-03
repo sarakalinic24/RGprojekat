@@ -19,6 +19,8 @@ Vanzemaljci su otkrili novu planetu sa jednim malim stanovnikom.
 
 `E` - gore
 
+`B` - bloom
+
 `SCROLL` - uvelicavanje
 
 ---
